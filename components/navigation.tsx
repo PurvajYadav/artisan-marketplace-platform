@@ -2,19 +2,39 @@
 
 import Link from "next/link"
 import { Button } from "./ui/button"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Menu, X } from "lucide-react"
 import { useState } from "react"
+import { useAuth } from "@/hooks/use-auth"
 
-interface NavigationProps {
-  userRole?: "customer" | "artisan" | "admin" | "consultant" | null
-}
-
-export function Navigation({ userRole }: NavigationProps) {
+export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, isLoading, logout } = useAuth()
 
   const isActive = (href: string) => pathname === href
+
+  const handleLogout = () => {
+    logout()
+    router.push("/")
+    setIsOpen(false)
+  }
+
+  if (isLoading) {
+    return (
+      <nav className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold">
+              A
+            </div>
+            <span className="font-semibold text-lg text-primary">Artisan</span>
+          </Link>
+        </div>
+      </nav>
+    )
+  }
 
   return (
     <nav className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b border-border">
@@ -28,25 +48,31 @@ export function Navigation({ userRole }: NavigationProps) {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
-          {userRole ? (
+          {user ? (
             <>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-foreground">{user.name}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                </div>
+              </div>
               <Link
-                href={`/${userRole}`}
+                href={`/${user.role}`}
                 className={`text-sm font-medium transition-colors ${
-                  isActive(`/${userRole}`) ? "text-primary" : "text-foreground hover:text-primary"
+                  isActive(`/${user.role}`) ? "text-primary" : "text-foreground hover:text-primary"
                 }`}
               >
                 Dashboard
               </Link>
               <Link
-                href={`/${userRole}/profile`}
+                href={`/${user.role}/profile`}
                 className={`text-sm font-medium transition-colors ${
-                  isActive(`/${userRole}/profile`) ? "text-primary" : "text-foreground hover:text-primary"
+                  isActive(`/${user.role}/profile`) ? "text-primary" : "text-foreground hover:text-primary"
                 }`}
               >
                 Profile
               </Link>
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" onClick={handleLogout}>
                 Sign Out
               </Button>
             </>
@@ -82,15 +108,19 @@ export function Navigation({ userRole }: NavigationProps) {
       {isOpen && (
         <div className="md:hidden border-t border-border bg-card">
           <div className="px-4 py-4 space-y-3">
-            {userRole ? (
+            {user ? (
               <>
-                <Link href={`/${userRole}`} className="block px-4 py-2 hover:bg-muted rounded">
+                <div className="px-4 py-3 mb-3 bg-muted rounded">
+                  <p className="text-sm font-medium text-foreground">{user.name}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                </div>
+                <Link href={`/${user.role}`} className="block px-4 py-2 hover:bg-muted rounded">
                   Dashboard
                 </Link>
-                <Link href={`/${userRole}/profile`} className="block px-4 py-2 hover:bg-muted rounded">
+                <Link href={`/${user.role}/profile`} className="block px-4 py-2 hover:bg-muted rounded">
                   Profile
                 </Link>
-                <Button size="sm" variant="outline" className="w-full bg-transparent">
+                <Button size="sm" variant="outline" className="w-full bg-transparent" onClick={handleLogout}>
                   Sign Out
                 </Button>
               </>

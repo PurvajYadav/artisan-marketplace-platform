@@ -3,16 +3,19 @@
 import type React from "react"
 
 import { useState, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Navigation } from "@/components/navigation"
 import Link from "next/link"
-import { Mail, Lock, User } from "lucide-react"
+import { Mail, Lock, User, AlertCircle } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 function SignupContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const { signup, registerUser } = useAuth()
   const roleParam = searchParams.get("role")
 
   const roles = ["customer", "artisan", "admin", "consultant"]
@@ -26,22 +29,56 @@ function SignupContent() {
     confirmPassword: "",
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError("")
     setIsLoading(true)
-    // Registration logic will be added here
-    setTimeout(() => setIsLoading(false), 1000)
+
+    try {
+      // Validate form
+      if (!formData.name || !formData.email || !formData.password) {
+        throw new Error("Please fill in all fields")
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        throw new Error("Passwords do not match")
+      }
+
+      if (formData.password.length < 6) {
+        throw new Error("Password must be at least 6 characters")
+      }
+
+      // Create user
+      const newUser = signup(formData.email, formData.password, formData.name, selectedRole)
+      registerUser(newUser)
+
+      // Redirect to dashboard
+      setTimeout(() => {
+        router.push(`/${selectedRole}`)
+      }, 500)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create account")
+      setIsLoading(false)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/5 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="bg-card border border-border rounded-lg p-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">Create Account</h1>
             <p className="text-muted-foreground">Join the Artisan community</p>
           </div>
+
+          {error && (
+            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/30 rounded flex gap-2 items-start">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-500">{error}</p>
+            </div>
+          )}
 
           {/* Role Selection */}
           <div className="mb-6">
