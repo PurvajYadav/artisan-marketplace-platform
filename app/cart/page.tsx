@@ -109,7 +109,8 @@ export default function CartPage() {
         <section className="bg-card border-b border-border py-6 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto flex items-end justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Shopping Cart</h1>
+              <h1 className="text-3xl font-bold text-foreground">Shopping Cart (NEW)</h1>
+
               <p className="text-muted-foreground mt-1">
                 {totalItems} {totalItems === 1 ? "item" : "items"} in your cart
               </p>
